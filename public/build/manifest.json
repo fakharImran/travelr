@@ -1,0 +1,24 @@
+{
+  "resources/js/app.css": {
+    "file": "assets/app-21fdfc57.css",
+    "src": "resources/js/app.css"
+  },
+  "resources/js/app.js": {
+    "css": [
+      "assets/app-21fdfc57.css"
+    ],
+    "file": "assets/app-2fd7bba3.js",
+    "isEntry": true,
+    "src": "resources/js/app.js"
+  },
+  "resources/js/merchandiserTimeSheetDataTableAndChart.js": {
+    "file": "assets/merchandiserTimeSheetDataTableAndChart-e1843376.js",
+    "isEntry": true,
+    "src": "resources/js/merchandiserTimeSheetDataTableAndChart.js"
+  },
+  "resources/sass/app.scss": {
+    "file": "assets/app-041e359a.css",
+    "isEntry": true,
+    "src": "resources/sass/app.scss"
+  }
+}
