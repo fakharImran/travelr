@@ -7,11 +7,15 @@ use Validator;
 use App\Models\User;
 use App\Models\Driver;
 use App\Models\Dispatch;
+
 use Illuminate\Http\Request;
+use Spatie\Permission\Models\Role;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use App\Http\Controllers\API\BaseController as BaseController;
 
-class DriverController extends Controller
+class DriverController extends BaseController
 {
     /**
      * Display a listing of the resource.
@@ -21,37 +25,37 @@ class DriverController extends Controller
     public function index()
     {
          //
-         $user = Auth::user();         
+        $user = Auth::user();         
 
-         return response()->json(['user' => $user, 'message' => 'User index'], 201);
+        return response()->json(['user' => $user, 'message' => 'User index'], 201);
+    }
+
+    // public function getDriverDispatchData($id=0)
+    // {
+    //     return" in function dispatch";
+    //     $dispatchData= Dispatch::select('*')->where('id',$id)->get();
+    //     return response()->json(['DispatchData' => $dispatchData, 'message' => 'here is your dispatch data'], 201);
+
+    // }
+
+    public function getDriver(Request $request)
+    {
+        // Validate the request to ensure 'id' is present
+        $request->validate([
+            'id' => 'required|integer',
+        ]);
+
+        // Retrieve the driver with their dispatches using the provided id
+        $driverId = $request->query('id');
+        $driver = Driver::with('dispatches')->find($driverId);
+
+        // Check if the driver was found
+        if ($driver) {
+            return response()->json(['success' => true, 'driver' => $driver], 200);
+        } else {
+            return response()->json(['success' => false, 'message' => 'Driver not found'], 404);
         }
-
-        // public function getDriverDispatchData($id=0)
-        // {
-        //     return" in function dispatch";
-        //     $dispatchData= Dispatch::select('*')->where('id',$id)->get();
-        //     return response()->json(['DispatchData' => $dispatchData, 'message' => 'here is your dispatch data'], 201);
-
-        // }
-
-        public function getDriver(Request $request)
-        {
-            // Validate the request to ensure 'id' is present
-            $request->validate([
-                'id' => 'required|integer',
-            ]);
-
-            // Retrieve the driver with their dispatches using the provided id
-            $driverId = $request->query('id');
-            $driver = Driver::with('dispatches')->find($driverId);
-
-            // Check if the driver was found
-            if ($driver) {
-                return response()->json(['success' => true, 'driver' => $driver], 200);
-            } else {
-                return response()->json(['success' => false, 'message' => 'Driver not found'], 404);
-            }
-        }
+    }
     /**
      * Show the form for creating a new resource.
      *
@@ -65,35 +69,85 @@ class DriverController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'first_name' => 'required',
+            'last_name' => 'required',
+            'phone_no' => 'required',
+            'email' => 'required|email',
+            'time_zone' => 'required',
+            'device_token' => 'required',
+            'password' => 'required',
+            'c_password' => 'required|same:password',
+        ]);
+        
+        if ($validator->fails()) {
+            return $this->sendResponse(['error' => $validator->errors()], 'Validation Error', 422);
+        }
+        
+            //   $input = $request->all();
+            // $input['password'] = bcrypt($input['password']);
+
+
+        $arr = $request->only(['first_name', 'last_name', 'phone_no', 'email', 'password', 'time_zone', 'device_token']);
+        $arr['name'] = $arr['first_name'] . " " . $arr['last_name'];
+        
+        $user = User::create([
+            'name' => $arr['name'],
+            'email' => $request->email,
+            'phone_no' => $request->phone_no,
+            'time_zone' => $request->time_zone,
+            'device_token' => $request->device_token,
+            'password' => Hash::make( $request->password), // Make sure to hash the password
+        ]);
+        
+        $driverRole = Role::findByName('driver');
+        $user->assignRole($driverRole);
+
+        // Assuming driverUser() is a relationship on the User model
+        $user->driverUser()->create([
+            'first_name' => $arr['first_name'],
+            'last_name' => $arr['last_name']
+        ]);
+        
+        return response()->json(['user' => $user, 'message' => 'User created successfully'], 201);
+    }
+
+
+public function login(Request $request)
 {
     $validator = Validator::make($request->all(), [
-        'first_name' => 'required',
-        'last_name' => 'required',
-        'phone_no' => 'required',
         'email' => 'required|email',
-        'time_zone' => 'required',
-        'device_token' => 'required'
+        'password' => 'required',
+        'time_zone'=> 'required',
+        'device_token' => 'required',
     ]);
-    
-    if ($validator->fails()) {
-        return $this->sendResponse(['error' => $validator->errors()], 'Validation Error', 422);
-    }
-    
-    $arr = $request->only(['first_name', 'last_name', 'phone_no', 'email', 'time_zone', 'device_token']);
-    $arr['name'] = $arr['first_name'] . " " . $arr['last_name'];
-    
-    $user = new User($arr);
-    $user->save();
-    
-    // Assuming driverUser() is a relationship on the User model
-    $user->driverUser()->create([
-        'first_name' => $arr['first_name'],
-        'last_name' => $arr['last_name']
-    ]);
-    
-    return response()->json(['user' => $user, 'message' => 'User created successfully'], 201);
-}
 
+    if($validator->fails()){
+        return $this->sendError('Validation Error.', $validator->errors());       
+    }
+
+    if(Auth::attempt(['email' => $request->email, 'password' => $request->password])){ 
+        $user = Auth::user(); 
+        if($user->hasRole('driver')){
+            //update last login date and time
+            $user->update(['time_zone' => $request->input('time_zone'), 'device_token' => $request->input('device_token')]);
+
+            $success['token'] = $user->createToken('api-token')->plainTextToken;
+            $success['name'] =  $user->name;
+            $success['id'] =  $user->id;
+            $success['device_token'] = $user->device_token;
+            return $this->sendResponse($success, 'User login successfully.');
+        }
+        else{ 
+            return $this->sendError('Unauthorised.', ['error'=>'Unauthorised, Please login with driver credentials.']);
+        } 
+        
+    } 
+    else{ 
+        return $this->sendError('Unauthorised.', ['error'=>'Unauthorised']);
+    } 
+}
 
     /**
      * Display the specified resource.

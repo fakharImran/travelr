@@ -37,61 +37,61 @@ use App\Http\Controllers\API\MerchandiserApiControllers\PlanogramComplianceTrack
 
 Route::get('/hello', function () {
     return "Hello World!";
-  });
-
-
+});
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::get('get-my-dispatch-data/{id}', [DriverController::class, 'getDriverDispatchData']);
-
-Route::apiResource('add-driver', DriverController::class);
-
-Route::get('/get-driver', [DriverController::class, 'getDriver']);
-
-Route::get('/get-dispatch-sheet', [DispatchController::class, 'getDispatchSheet']);
-
-Route::put('/sendOK', [DispatchController::class, 'updateDriverId']);
-
-Route::put('/update-status', [DispatchController::class, 'updateDispatchSheetStatus']);
+Route::apiResource('register-driver', DriverController::class);
+Route::post('driver-login', [DriverController::class, 'login']);
 
 
+Route::middleware('auth:sanctum')->group( function () {
+    Route::get('/get-driver', [DriverController::class, 'getDriver']);
+
+    Route::get('/get-dispatch', [DispatchController::class, 'getDispatch']);
+    
+    Route::put('/ride-comfirmation', [DispatchController::class, 'confirmRide']);
+    
+    Route::put('/update-status', [DispatchController::class, 'updateDispatchStatus']);
+});
 
 
-Route::post('register', [RegisterController::class, 'register']);
-// Route::post('company-validation', [RegisterController::class, 'companyValidator']);
-Route::post('login', [RegisterController::class, 'login']);
-Route::post('get-companies', [RegisterController::class, 'getCompanies']);
-// Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail']);
-// Route::post('password/reset', [ResetPasswordController::class, 'reset']);
-Route::post('forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail']);
-Route::post('reset-password', [ResetPasswordController::class, 'reset']);
+
+
+// Route::post('register', [RegisterController::class, 'register']);
+// // Route::post('company-validation', [RegisterController::class, 'companyValidator']);
+// Route::post('login', [RegisterController::class, 'login']);
+// Route::post('get-companies', [RegisterController::class, 'getCompanies']);
+// // Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail']);
+// // Route::post('password/reset', [ResetPasswordController::class, 'reset']);
+// Route::post('forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail']);
+// Route::post('reset-password', [ResetPasswordController::class, 'reset']);
 
      
 Route::middleware('auth:sanctum')->group( function () {
-    Route::apiResource('companies', CompanyController::class);
-    Route::apiResource('time-sheets', MerchandiserTimeSheetController::class);
-    Route::post('time-sheets/check-out/{id}', [MerchandiserTimeSheetController::class, 'update']);
+    // Route::apiResource('companies', CompanyController::class);
+    // Route::apiResource('time-sheets', MerchandiserTimeSheetController::class);
+    // Route::post('time-sheets/check-out/{id}', [MerchandiserTimeSheetController::class, 'update']);
 
 
     
-    Route::apiResource('price-audit',PriceAuditController::class);
-    Route::apiResource('stock-count-by-store',StockCountByStoreController::class);
-    Route::apiResource('planogram-compliance-tracker',PlanogramComplianceTrackerController::class);
-    Route::post('planogram-compliance-tracker/{id}', [PlanogramComplianceTrackerController::class, 'update']);
+    // Route::apiResource('price-audit',PriceAuditController::class);
+    // Route::apiResource('stock-count-by-store',StockCountByStoreController::class);
+    // Route::apiResource('planogram-compliance-tracker',PlanogramComplianceTrackerController::class);
+    // Route::post('planogram-compliance-tracker/{id}', [PlanogramComplianceTrackerController::class, 'update']);
 
-    Route::apiResource('sellin-vs-sellout-data',SellinSelloutDataController::class);
-    Route::apiResource('marketing-activity',MarketingActivityController::class);
-    Route::apiResource('product-expiry-tracker',ProductExpiryTrackerController::class);
-    Route::apiResource('out-of-stock',OutOfStockController::class);
-    Route::apiResource('opportunity',OpportunityController::class);
-    Route::apiResource('notification',NotificationController::class);
-    Route::get('notificationsByDate/{date}', [NotificationController::class, 'getNotificationByDate']);
-    Route::apiResource('activities',ActivityController::class);
-    Route::get('activitiesByDate/{date}', [ActivityController::class, 'getActivityByDate']);
-    Route::get('deleteMerchandiser', [ActivityController::class, 'deleteMerchandiser']);
+    // Route::apiResource('sellin-vs-sellout-data',SellinSelloutDataController::class);
+    // Route::apiResource('marketing-activity',MarketingActivityController::class);
+    // Route::apiResource('product-expiry-tracker',ProductExpiryTrackerController::class);
+    // Route::apiResource('out-of-stock',OutOfStockController::class);
+    // Route::apiResource('opportunity',OpportunityController::class);
+    // Route::apiResource('notification',NotificationController::class);
+    // Route::get('notificationsByDate/{date}', [NotificationController::class, 'getNotificationByDate']);
+    // Route::apiResource('activities',ActivityController::class);
+    // Route::get('activitiesByDate/{date}', [ActivityController::class, 'getActivityByDate']);
+    // Route::get('deleteMerchandiser', [ActivityController::class, 'deleteMerchandiser']);
 
 
 

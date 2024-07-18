@@ -71,7 +71,6 @@ class DispatchController extends Controller
             'phone_no' => 'required|string',
             'fare' => 'required|numeric',
             'time_away' => 'required|string',
-            'status' => 'required|string',
         ]);
 
         $dispatch = Dispatch::create([
@@ -80,7 +79,7 @@ class DispatchController extends Controller
             'phone_no' => $request->phone_no,
             'fare' => $request->fare,
             'time_away' => $request->time_away,
-            'status' => $request->status,
+            'status' => "pending",
         ]);
 
         $dataRequest = $request->input();

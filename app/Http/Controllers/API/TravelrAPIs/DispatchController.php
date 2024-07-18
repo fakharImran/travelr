@@ -21,26 +21,41 @@ class DispatchController extends Controller
         //
 
     }
-    public function updateDriverId(Request $request)
+    public function confirmRide(Request $request)
     {
-
         // Validate the incoming request data
+        $validator = Validator::make($request->all(), [
+            'dispatch_id' => 'required|integer|exists:dispatches,id',
+            'driver_id' => 'required|integer|exists:drivers,id',
+        ]);
+    
+        // If validation fails, return the errors
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'message' => 'Validation Error', 'errors' => $validator->errors()], 422);
+        }
+    
         $dispatchId = $request->input('dispatch_id');
         $driverId = $request->input('driver_id');
-
+    
         $dispatch = Dispatch::find($dispatchId);
-
+    
         if ($dispatch) {
+            if ($dispatch->driver_id) {
+                return response()->json(['success' => false, 'message' => 'Dispatch already has a driver assigned'], 409);
+            }
+    
             $dispatch->driver_id = $driverId;
+            $dispatch->status = "in-progress";
             $dispatch->save();
-
-            return response()->json(['success' => true, 'message' => 'Driver ID updated successfully']);
+    
+            return response()->json(['success' => true, 'message' => 'Driver assigned to dispatch successfully']);
         } else {
             return response()->json(['success' => false, 'message' => 'Dispatch not found'], 404);
         }
     }
+    
 
-    public function getDispatchSheet(Request $request)
+    public function getDispatch(Request $request)
     {
           // Validate the request to ensure 'id' is present
           $request->validate([
@@ -158,7 +173,7 @@ class DispatchController extends Controller
 
 
 
-    public function updateDispatchSheetStatus(Request $request)
+    public function updateDispatchStatus(Request $request)
     {
         // Validate the incoming request data
         $dispatchId = $request->input('dispatch_id');
@@ -170,7 +185,7 @@ class DispatchController extends Controller
             $dispatch->status = $status;
             $dispatch->save();
 
-            return response()->json(['success' => true, 'message' => 'Dispatch Sheet updated successfully']);
+            return response()->json(['success' => true, 'message' => 'Dispatch status updated successfully']);
         } else {
             return response()->json(['success' => false, 'message' => 'Dispatch not found'], 404);
         }
