@@ -2,9 +2,41 @@
 
 @section("top_links")
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 {{-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"> --}}
 
+
+
 <script>
+    
+//     let lastUpdate = null;
+
+// function checkForUpdates() {
+//     $.ajax({
+//         url: "{{ route('check.dispatch.updates') }}",
+//         type: "GET",
+//         success: function(response) {
+//             if (lastUpdate && response.last_update !== lastUpdate) {
+//                 // Reload the page if there is a new update
+//                 location.reload();
+//             }
+//             lastUpdate = response.last_update;
+//         },
+//         error: function() {
+//             console.error('Error checking for updates');
+//         }
+//     });
+// }
+
+// // Check for updates every 3 seconds
+// setInterval(checkForUpdates, 3000);
+
+// // Initial check
+// checkForUpdates();
+
+
+
 function formatTime(timeString) {  // this function if just for edit time display only
     // Split the time string into hours, minutes, seconds, and period (AM/PM)
     let [timePart, period] = timeString.split(' ');
@@ -75,10 +107,9 @@ function formatTimewithAmPm(timeString) { // this function is for disply date pr
             let dropoff = parentTableRow.querySelector(`#newDropOff-${rowNumber}`).innerHTML;
             let phone = parentTableRow.querySelector(`#newPhone-${rowNumber}`).innerHTML;
             let fare = parentTableRow.querySelector(`#newFare-${rowNumber}`).innerHTML;
-            let timeAway = parentTableRow.querySelector(`#newTimeAway-${rowNumber}`).innerHTML;
+            let driver = parentTableRow.querySelector(`#newDriver-${rowNumber}`).innerHTML.trim().replace(/\s+/g, ' ');
+            let timeAway = parentTableRow.querySelector(`#newTimeAway-${rowNumber}`).innerHTML.trim().replace(/\s+/g, ' ');
             let status = parentTableRow.querySelector(`#newStatus-${rowNumber}`).innerHTML;
-
-            
 
             parentTableRow.innerHTML = `
                 <td class="tdclass">${rowNumber}</td>
@@ -93,8 +124,9 @@ function formatTimewithAmPm(timeString) { // this function is for disply date pr
                     <button id="update-button-${rowNumber}" class="btn btn-success" onclick="handleAction(${id}, 'update', ${rowNumber})">Update</button>
                     <button id="cancel-button-${rowNumber}" class="btn btn-danger" onclick="handleAction(${id}, 'cancel', ${rowNumber})">Cancel</button>
                 </td>
-                <td class="tdclass"><input type="number" class="form-control" id="newTimeAway-${rowNumber}" value="${timeAway}"></td>
-                <td class="tdclass"><input type="text" readonly class="form-control" id="newStatus-${rowNumber}" value="${status}"></td>
+                <td class="tdclass"><input type="text" class="form-control" id="newDriver-${rowNumber}" value="${driver}" readonly></td>
+                <td class="tdclass"><input type="text" class="form-control" id="newTimeAway-${rowNumber}" value="${timeAway}" readonly></td>
+                <td class="tdclass"><input type="text"  class="form-control" id="newStatus-${rowNumber}" value="${status}" readonly></td>
             `;
         } else if (action === "update") {
 
@@ -104,6 +136,7 @@ function formatTimewithAmPm(timeString) { // this function is for disply date pr
             let dropoff = parentTableRow.querySelector(`#newDropOff-${rowNumber}`).value;
             let phone = parentTableRow.querySelector(`#newPhone-${rowNumber}`).value;
             let fare = parentTableRow.querySelector(`#newFare-${rowNumber}`).value;
+            let driver = parentTableRow.querySelector(`#newDriver-${rowNumber}`).value;
             let timeAway = parentTableRow.querySelector(`#newTimeAway-${rowNumber}`).value;
             let status = parentTableRow.querySelector(`#newStatus-${rowNumber}`).value;
 
@@ -142,6 +175,7 @@ function formatTimewithAmPm(timeString) { // this function is for disply date pr
                                 <button id="update-button-${rowNumber}" class="btn btn-success" style="display: none;" onclick="handleAction(${id}, 'update', ${rowNumber})">Update</button>
                                 <button id="cancel-button-${rowNumber}" class="btn btn-danger" style="display: none;" onclick="handleAction(${id}, 'cancel', ${rowNumber})">Cancel</button>
                             </td>
+                            <td class="tdclass" id="newDriver-${rowNumber}">${driver}</td>
                             <td class="tdclass" id="newTimeAway-${rowNumber}">${timeAway}</td>
                             <td class="tdclass" id="newStatus-${rowNumber}">${status}</td>
                         `;
@@ -171,6 +205,8 @@ function formatTimewithAmPm(timeString) { // this function is for disply date pr
                     <button id="update-button-${rowNumber}" class="btn btn-success" style="display: none;" onclick="handleAction(${id}, 'update', ${rowNumber})">Update</button>
                     <button id="cancel-button-${rowNumber}" class="btn btn-danger" style="display: none;" onclick="handleAction(${id}, 'cancel', ${rowNumber})">Cancel</button>
                 </td>
+
+                <td class="tdclass" id="newDriver-${rowNumber}">${parentTableRow.querySelector(`#newDriver-${rowNumber}`).value}</td>
                 <td class="tdclass" id="newTimeAway-${rowNumber}">${parentTableRow.querySelector(`#newTimeAway-${rowNumber}`).value}</td>
                 <td class="tdclass" id="newStatus-${rowNumber}">${parentTableRow.querySelector(`#newStatus-${rowNumber}`).value}</td>
             `;
@@ -223,27 +259,30 @@ function toggleFullScreen() {
 
     var rowCount = tableBody.getElementsByTagName('tr').length;
     newRow.id = `dispatch-row-${rowCount + 1}`;
-
     var now = new Date();
     var currentDate = now.toISOString().split('T')[0]; // Format: YYYY-MM-DD
-        var options = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
-    var diffCurrTime = now.toLocaleTimeString('en-US', options); // Format: HH:MM:SS AM/PM
-    
-    var currentTime = now.toLocaleTimeString('it-IT'); // Format: HH:MM AM/PM
-        newRow.innerHTML = `
-            <td class="tdclass">${rowCount + 1}</td>
-            <td class="tdclass"><input type="date" class="form-control" id="newDate-${rowCount + 1}" value="${currentDate}"  readonly></td>
-            <td class="tdclass"><input type="time" class="form-control" id="newTime-${rowCount + 1}"  value="${currentTime}"   readonly></td>
-            <td class="tdclass"><input type="text" class="form-control" id="newPickUp-${rowCount + 1}"></td>
-            <td class="tdclass"><input type="text" class="form-control" id="newDropOff-${rowCount + 1}"></td>
-            <td class="tdclass"><input type="number" class="form-control" id="newPhone-${rowCount + 1}"></td>
-            <td class="tdclass"><input type="number" class="form-control" id="newFare-${rowCount + 1}"></td>
-            <td class="tdclass">
-                <button class="btn btn-success newSendButton" data-row="${rowCount + 1}">Send</button>
-            </td>
-            <td class="tdclass"><input type="number" class="form-control" id="newTimeAway-${rowCount + 1}"></td>
-            <td class="tdclass"><input type="text" readonly class="form-control" id="newStatus-${rowCount + 1}" value="pending"></td>
-        `;
+
+    // Format time in UTC
+    var options = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true, timeZone: 'UTC' };
+    var currentTime = now.toLocaleTimeString('en-US', options); // Format: HH:MM:SS AM/PM
+
+    // Create a new row with the formatted date and time
+    newRow.innerHTML = `
+        <td class="tdclass">${rowCount + 1}</td>
+        <td class="tdclass"><input type="date" class="form-control" id="newDate-${rowCount + 1}" value="${currentDate}" readonly></td>
+        <td class="tdclass"><input type="text" class="form-control" id="newTime-${rowCount + 1}" value="${currentTime}" readonly></td>
+        <td class="tdclass"><input type="text" class="form-control" id="newPickUp-${rowCount + 1}"></td>
+        <td class="tdclass"><input type="text" class="form-control" id="newDropOff-${rowCount + 1}"></td>
+        <td class="tdclass"><input type="number" class="form-control" id="newPhone-${rowCount + 1}"></td>
+        <td class="tdclass"><input type="number" class="form-control" id="newFare-${rowCount + 1}"></td>
+        <td class="tdclass">
+            <button class="btn btn-success newSendButton" data-row="${rowCount + 1}">Send</button>
+        </td>
+        <td class="tdclass"><input type="number" class="form-control" id="newDriver-${rowCount + 1}" readonly></td>
+        <td class="tdclass"><input type="number" class="form-control" id="newTimeAway-${rowCount + 1}" readonly></td>
+        <td class="tdclass"><input type="text" class="form-control" id="newStatus-${rowCount + 1}" readonly value="pending"></td>
+    `;
+
     tableBody.insertBefore(newRow, tableBody.firstChild);
 
     newRow.querySelector('.newSendButton').addEventListener('click', function() {
@@ -258,7 +297,7 @@ function toggleFullScreen() {
         var newStatus = document.getElementById(`newStatus-${rowNumber}`).value;
 
         // Validation
-        if (!newDate || !newTime || !newPickUp || !newDropOff || !newPhone || !newFare || !newTimeAway || !newStatus) {
+        if (!newDate || !newTime || !newPickUp || !newDropOff || !newPhone || !newFare  || !newStatus) {
             alert('Please fill in all fields.');
             return;
         }
@@ -285,7 +324,7 @@ function toggleFullScreen() {
                     newRow.innerHTML = `
                         <td class="tdclass">${rowCount+1}</td>
                         <td class="tdclass"  id="newDate-${rowCount + 1}">${newDate}</td>
-                        <td class="tdclass"  id="newTime-${rowCount + 1}">${diffCurrTime}</td>
+                        <td class="tdclass"  id="newTime-${rowCount + 1}">${newTime}</td>
                         <td class="tdclass"  id="newPickUp-${rowCount + 1}">${newPickUp}</td>
                         <td class="tdclass"  id="newDropOff-${rowCount + 1}">${newDropOff}</td>
                         <td class="tdclass"  id="newPhone-${rowCount + 1}">${newPhone}</td>
@@ -296,6 +335,8 @@ function toggleFullScreen() {
                             <button id="update-button-${rowCount + 1}" class="btn btn-success" style="display: none;" onclick="handleAction(${dispatchId}, 'update', ${rowCount + 1})">Update</button>
                             <button id="cancel-button-${rowCount + 1}" class="btn btn-danger" style="display: none;" onclick="handleAction(${dispatchId}, 'cancel', ${rowCount + 1})">Cancel</button>
                         </td>
+                        <td class="tdclass"  id="newDriver-${rowCount + 1}"> </td>
+
                         <td class="tdclass"  id="newTimeAway-${rowCount + 1}">${newTimeAway}</td>
                         <td class="tdclass"  id="newStatus-${rowCount + 1}">${newStatus}</td>
                     `;
@@ -382,6 +423,7 @@ $(document).ready(function(){
                         <th class="thclass" scope="col">Phone Number</th>
                         <th class="thclass" scope="col">Fare</th>
                         <th class="thclass" scope="col">Actions</th>
+                        <th class="thclass" scope="col">Driver</th>
                         <th class="thclass" scope="col">Time away</th>
                         <th class="thclass" scope="col">Job status</th>
                     </tr>
@@ -410,7 +452,24 @@ $(document).ready(function(){
                                 <button id="update-button-{{  $dispatchCount }}" class="btn btn-success" style="display: none;" onclick="handleAction({{ $dispatch['id'] }}, 'update', {{$dispatchCount}})">Update</button>
                                 <button id="cancel-button-{{  $dispatchCount }}" class="btn btn-danger" style="display: none;" onclick="handleAction({{ $dispatch['id'] }}, 'cancel',  {{$dispatchCount}})">Cancel</button>
                             </td>
-                            <td class="tdclass" id="newTimeAway-{{ $dispatchCount }}">{{ $dispatch['time_away'] }}</td>
+                            <td class="tdclass" id="newDriver-{{ $dispatchCount }}">
+                                @if ($dispatch->driver_id)  
+                                {{ $dispatch->driver->user->name}} 
+                                @else
+                                {{""}}
+                                @endif
+                            </td>
+
+
+                            <td class="tdclass" id="newTimeAway-{{ $dispatchCount }}">
+                            @if ($dispatch['time_away'])  
+                                {{ $dispatch['time_away'] }} {{"min"}}
+                            @else
+                                {{""}}
+                            @endif
+                           
+                            
+                            </td>
                             <td class="tdclass" id="newStatus-{{ $dispatchCount }}">{{ $dispatch['status'] }}</td>
                         </tr>
                         @php

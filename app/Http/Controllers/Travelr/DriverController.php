@@ -9,6 +9,7 @@ use App\Models\Driver;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class DriverController extends Controller
 {
@@ -70,6 +71,7 @@ class DriverController extends Controller
 
              $arr =  $request->input();
              $arr['name'] = $arr['first_name'] . " " . $arr['last_name'];
+             $user['password']=    Hash::make( $request->password); // Make sure to hash the password
 
              $user = new User($arr);
              $user->save();

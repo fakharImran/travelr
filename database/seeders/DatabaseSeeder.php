@@ -27,7 +27,7 @@ class DatabaseSeeder extends Seeder
         $user = User::factory()->create([
             'name' => 'Admin',
             'email' => 'admin@travelr.com',
-            'time_zone' => 'Asia/Karachi',
+            'time_zone' => 'UTC',
             'password' => bcrypt('admin123'),
         ]);
         // Assign the "admin" role to the user

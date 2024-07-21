@@ -47,11 +47,20 @@ class DriverController extends BaseController
 
         // Retrieve the driver with their dispatches using the provided id
         $driverId = $request->query('id');
-        $driver = Driver::with('dispatches')->find($driverId);
+        // $user= User::with('driverUser')->find($userId);
+            $driver = Driver::with('dispatches')->find($driverId);
+            $dispatches= $driver->dispatches;
 
-        // Check if the driver was found
+                // Check if the driver was found
         if ($driver) {
-            return response()->json(['success' => true, 'driver' => $driver], 200);
+
+            $success['id'] =  $driver->id;
+            $success['name'] =  $driver->user->name;
+            $success['email'] =  $driver->user->email;
+            $success['phone_no'] =  $driver->user->phone_no;
+            $success['dispatches'] = $dispatches;
+            return $this->sendResponse($success, ' Driver Details with dispatches.');
+            
         } else {
             return response()->json(['success' => false, 'message' => 'Driver not found'], 404);
         }
@@ -74,7 +83,7 @@ class DriverController extends BaseController
             'first_name' => 'required',
             'last_name' => 'required',
             'phone_no' => 'required',
-            'email' => 'required|email',
+            'email' => 'required|email|unique:users,email',
             'time_zone' => 'required',
             'device_token' => 'required',
             'password' => 'required',
@@ -109,8 +118,15 @@ class DriverController extends BaseController
             'first_name' => $arr['first_name'],
             'last_name' => $arr['last_name']
         ]);
-        
-        return response()->json(['user' => $user, 'message' => 'User created successfully'], 201);
+        $driverDetails=[
+                        'driver_id' => $user->driverUser->id,
+                        'driver_name' => $user->name,
+                        'phone_no' => $user->phone_no,
+                        'email' => $user->email,
+                        'time_zone' => $user->time_zone,
+
+                    ]; 
+        return response()->json(['driverDetails' => $driverDetails, 'message' => 'Driver created successfully'], 201);
     }
 
 
@@ -135,9 +151,9 @@ public function login(Request $request)
 
             $success['token'] = $user->createToken('api-token')->plainTextToken;
             $success['name'] =  $user->name;
-            $success['id'] =  $user->id;
+            $success['id'] =  $user->driverUser->id;
             $success['device_token'] = $user->device_token;
-            return $this->sendResponse($success, 'User login successfully.');
+            return $this->sendResponse($success, 'Driver login successfully.');
         }
         else{ 
             return $this->sendError('Unauthorised.', ['error'=>'Unauthorised, Please login with driver credentials.']);

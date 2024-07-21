@@ -21,6 +21,44 @@ class DispatchController extends Controller
         //
 
     }
+
+    public function updateDriverTimeAwayonDispatchSheet(Request $request)
+    {
+        // Validate the incoming request data
+        $validator = Validator::make($request->all(), [
+            'time_away' => 'required|integer',
+        ]);
+    
+        // If validation fails, return the errors
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'message' => 'Validation Error', 'errors' => $validator->errors()], 422);
+        }
+    
+        $dispatchId = $request->input('dispatch_id');
+        $driverId = $request->input('driver_id');
+    
+        $dispatch = Dispatch::find($dispatchId);
+    
+        if ($dispatch) {
+            if ($dispatch->driver_id) {
+
+                $dispatch->time_away = $request->time_away;
+                $dispatch->save();
+                return response()->json(['success' => false, 'message' => 'Dispatch time away is updated'], 500);
+            }
+            else{
+                return response()->json(['success' => false, 'message' => 'Selected Dispatch does not have a driver assigned'], 500);
+
+            }
+    
+           
+    
+            return response()->json(['success' => true, 'message' => 'Driver assigned to dispatch successfully']);
+        } else {
+            return response()->json(['success' => false, 'message' => 'Dispatch not found'], 404);
+        }
+    }
+
     public function confirmRide(Request $request)
     {
         // Validate the incoming request data
@@ -41,14 +79,14 @@ class DispatchController extends Controller
     
         if ($dispatch) {
             if ($dispatch->driver_id) {
-                return response()->json(['success' => false, 'message' => 'Dispatch already has a driver assigned'], 409);
+                return response()->json(['success' => false, 'message' => 'assigned_already'], 409);
             }
     
             $dispatch->driver_id = $driverId;
             $dispatch->status = "in-progress";
             $dispatch->save();
     
-            return response()->json(['success' => true, 'message' => 'Driver assigned to dispatch successfully']);
+            return response()->json(['success' => true, 'message' => 'assigned']);
         } else {
             return response()->json(['success' => false, 'message' => 'Dispatch not found'], 404);
         }
@@ -69,6 +107,19 @@ class DispatchController extends Controller
         // Check if the driver was found
         if ($dispatch_sheet) {
             return response()->json(['success' => true, 'dispatch_sheet' => $dispatch_sheet], 200);
+        } else {
+            return response()->json(['success' => false, 'message' => 'Dispatch Sheet not found'], 404);
+        }
+    }
+
+    public function getAllDispatch(Request $request)
+    {
+        
+
+        $allDispatches= Dispatch::all();
+
+        if ($allDispatches) {
+            return response()->json(['success' => true, 'All Dispatch Sheets' => $allDispatches], 200);
         } else {
             return response()->json(['success' => false, 'message' => 'Dispatch Sheet not found'], 404);
         }

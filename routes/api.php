@@ -51,8 +51,10 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('/get-driver', [DriverController::class, 'getDriver']);
 
     Route::get('/get-dispatch', [DispatchController::class, 'getDispatch']);
+    Route::get('/get-all-dispatch', [DispatchController::class, 'getAllDispatch']);
     
     Route::put('/ride-comfirmation', [DispatchController::class, 'confirmRide']);
+    Route::put('/update-time-away', [DispatchController::class, 'updateDriverTimeAwayonDispatchSheet']);
     
     Route::put('/update-status', [DispatchController::class, 'updateDispatchStatus']);
 });

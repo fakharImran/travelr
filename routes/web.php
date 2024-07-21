@@ -12,12 +12,12 @@ use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Travelr\DriverController;
 use App\Http\Controllers\Travelr\AppUserController;
-use App\Http\Controllers\Travelr\SettingController;
 use App\Http\Controllers\Travelr\DispatchController;
 use App\Http\Controllers\Admin\CompanyUserController;
 use App\Http\Controllers\Manager\DashboardController;
 use App\Http\Controllers\Travelr\JobHistoryController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use App\Http\Controllers\Travelr\CustomSettingController;
 use App\Http\Controllers\Admin\CustomerControllers\reportController;
 use App\Http\Controllers\Admin\CustomerControllers\OutOfStockController;
 use App\Http\Controllers\Admin\CustomerControllers\PriceAuditController;
@@ -41,7 +41,7 @@ use App\Http\Controllers\Admin\CustomerControllers\PlanogramComplianceTrackerCon
 | contains the "web" middleware group. Now create something great!
 |
 */
-
+Route::get('testfirebase', [DispatchController::class, 'testfirebase']);
 Route::get('/',  function(){
     $user = Auth::user();
 
@@ -141,6 +141,9 @@ Route::group(['middleware' => ['auth', 'role:admin']], function() {
      Route::post('/update-status',[DispatchController::class, 'updateStatus'])->name('updateStatus');
      Route::post('/dispatch/{id}/cancel', [DispatchController::class, 'cancel']);
 
+     Route::get('/check-dispatch-updates', [DispatchController::class, 'checkUpdates'])->name('check.dispatch.updates');
+
+
     //  Route::post('/dispatch/store', [DispatchController::class, 'store'])->name('dispatch.store');
     //  Route::post('/dispatch/{id}/update-status', [DispatchController::class, 'updateStatus']);
     //  Route::post('/dispatch/{id}/cancel', [DispatchController::class, 'cancel']);
@@ -155,7 +158,8 @@ Route::group(['middleware' => ['auth', 'role:admin']], function() {
      Route::get('jobHistory/edit/{target?}/{parameter?}', [JobHistoryController::class, 'edit'])->name('job-history-edit');
 
 
-     Route::resource('setting', SettingController::class);
+
+     Route::resource('setting', CustomSettingController::class);
 
      // Route::get('/file-import',[StoreController::class,
     //         'importView'])->name('import-view');
